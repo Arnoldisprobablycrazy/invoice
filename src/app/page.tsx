@@ -20,9 +20,9 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-brand">
       <Head>
-        <title>InvoiceFlow | Modern Invoice Management</title>
+        <title>Invoicer | Modern Invoice Management</title>
         <meta name="description" content="Streamline your invoicing process with InvoiceFlow" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -31,7 +31,7 @@ export default function Home() {
       <nav className="flex justify-between items-center p-6 max-w-7xl mx-auto">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-indigo-600 rounded-lg"></div>
-          <span className="text-2xl font-bold text-indigo-600">InvoiceFlow</span>
+          <span className="text-2xl font-bold text-brand-butns">Invoicer</span>
         </div>
         <div className="hidden md:flex space-x-8">
           <a href="#features" className="text-gray-600 hover:text-indigo-600">Features</a>
@@ -55,7 +55,7 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-6 py-16 md:py-24 flex flex-col md:flex-row items-center">
         <div className="md:w-1/2 mb-10 md:mb-0">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-800 leading-tight mb-6">
-            Streamline Your <span className="text-indigo-600">Invoicing Process</span> with Ease
+            Streamline Your <span className="text-brand-butns">Invoicing Process</span> with Ease
           </h1>
           <p className="text-gray-600 text-lg mb-8">
             Create, send, and manage professional invoices in minutes. Get paid faster with our intuitive invoice management system.
@@ -97,7 +97,7 @@ export default function Home() {
                 <span>$850.00</span>
               </div>
             </div>
-            <div className="absolute -z-10 top-2 left-2 w-full h-full bg-indigo-100 rounded-xl transform -rotate-3"></div>
+            <div className="absolute -z-20 top-2 left-2 w-full h-full bg-brand-butns rounded-xl transform -rotate-3"></div>
           </div>
         </div>
       </section>
@@ -124,22 +124,22 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 md:py-24 bg-indigo-600 text-white">
+      <section className="py-16 md:py-24 bg-gradient-brand ">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Simplify Your Invoicing?</h2>
-          <p className="text-indigo-100 mb-8 max-w-2xl mx-auto">Join thousands of businesses that use InvoiceFlow to save time and get paid faster.</p>
+          <p className=" mb-8 max-w-2xl mx-auto">Join thousands of businesses that use InvoiceFlow to save time and get paid faster.</p>
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row max-w-md mx-auto sm:max-w-lg">
             <input
               type="email"
               value={email}
               onChange={handleEmailChange}
               placeholder="Enter your email"
-              className="flex-grow px-4 py-3 rounded-l-lg sm:rounded-r-none sm:rounded-l-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              className="flex-grow px-4 py-3 rounded-l-lg sm:rounded-r-none sm:rounded-l-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-butns"
               required
             />
             <button
               type="submit"
-              className="mt-2 sm:mt-0 bg-white text-indigo-600 px-6 py-3 rounded-r-lg font-medium hover:bg-gray-100 transition-colors"
+              className="mt-2 sm:mt-0 bg-white text-brand-butns px-6 py-3 rounded-r-lg font-medium hover:bg-gray-100 transition-colors"
             >
               Get Started
             </button>
