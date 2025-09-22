@@ -1,6 +1,8 @@
 // pages/index.tsx
 "use client"
+import LoginForm from '@/components/LoginForm'
 import Head from 'next/head'
+import Link from 'next/link'
 import { useState, FormEvent, ChangeEvent } from 'react'
 
 export default function Home() {
@@ -36,9 +38,17 @@ export default function Home() {
           <a href="#testimonials" className="text-gray-600 hover:text-indigo-600">Testimonials</a>
           <a href="#pricing" className="text-gray-600 hover:text-indigo-600">Pricing</a>
         </div>
-        <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
-          Get Started
-        </button>
+       <Link href="/accounts/register">
+  <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+    Get Started
+  </button>
+</Link>
+
+        <Link href="/accounts/login">
+  <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+    Login
+  </button>
+</Link>
       </nav>
 
       {/* Hero Section */}
