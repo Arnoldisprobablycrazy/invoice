@@ -93,9 +93,9 @@
   .bg-brand-light { background-color: var(--color-brand-light); }
   .text-brand-dark { color: var(--color-brand-dark); }
   .bg-brand-accent { background-color: var(--color-brand-accent); }
-  .bg-brand-butns { background-color: var(--color-brand-butns); }
+  .bg-brand-butns { background-color: var(--color-brand-butns); } 
   .text-brand-butns {color: var(--color-brand-butns); }
-  .bg-brand-customs {--color:var(--color-brand-customs)}
+  .bg-brand-customs {color:var(--color-brand-customs);}
   .bg-brand-customs-light {background-color: var(--color-brand-customs-light);
 }
 }
