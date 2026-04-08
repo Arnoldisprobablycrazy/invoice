@@ -3,17 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import type { CurrentUserResponse } from "@/lib/auth-interfaces";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import AppSidebar from "@/components/ui/AppSidebar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Plus, FileText, Users, TrendingUp, AlertCircle, CheckCircle2 } from "lucide-react";
 
-/**
- * DASHBOARD COMPONENT
- * 
- * Displays user information and dashboard overview
- * - Fetches current user from JWT token
- * - Shows welcome message
- * - Provides navigation and logout
- */
 export default function Dashboard() {
   const [user, setUser] = useState<CurrentUserResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,18 +17,14 @@ export default function Dashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    /**
-     * Fetch current user info from JWT token
-     */
     const fetchUser = async () => {
       try {
         const response = await fetch("/api/auth/me", {
           method: "GET",
-          credentials: "include", // Send cookies
+          credentials: "include",
         });
 
         if (response.status === 401) {
-          // Unauthorized - redirect to login
           router.push("/accounts/(auth)/login");
           return;
         }
@@ -54,27 +46,12 @@ export default function Dashboard() {
     fetchUser();
   }, [router]);
 
-  /**
-   * Handle logout
-   */
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-      router.push("/accounts/(auth)/login");
-    } catch (err) {
-      console.error("Logout error:", err);
-    }
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
+          <p className="text-gray-600 font-medium">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -82,146 +59,193 @@ export default function Dashboard() {
 
   if (error || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error || "Failed to load user"}</p>
-          <Link href="/accounts/(auth)/login">
-            <button className="bg-amber-600 text-white px-6 py-2 rounded-lg hover:bg-amber-700">
-              Return to Login
-            </button>
-          </Link>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-600">
+              <AlertCircle className="w-5 h-5" />
+              Authentication Error
+            </CardTitle>
+            <CardDescription>{error || "Failed to load user data"}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/accounts/(auth)/login">
+              <Button className="w-full" variant="default">
+                Return to Login
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="relative w-10 h-10">
-              <Image
-                src="/logo.svg"
-                alt="Invoicer Logo"
-                fill
-                className="object-contain"
-              />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900">Invoicer</h1>
-          </div>
+    <SidebarProvider>
+      <div className="flex w-full h-screen bg-gray-50">
+        <AppSidebar user={{ username: user.username, email: user.email, role: user.role }} />
 
-          <button
-            onClick={handleLogout}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-          >
-            Logout
-          </button>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {user.username}! 👋
-          </h2>
-          <p className="text-gray-600">
-            Here&apos;s your invoice management dashboard. Get started by creating your first invoice.
-          </p>
-        </div>
-
-        {/* User Info Card */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Email Card */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm font-medium">Email</p>
-                <p className="text-lg font-semibold text-gray-900 mt-1">
-                  {user.email}
-                </p>
+        <main className="flex-1 overflow-auto">
+          {/* Top Bar */}
+          <div className="border-b bg-white sticky top-0 z-10">
+            <div className="flex items-center justify-between px-6 py-4">
+              <div className="flex items-center gap-4">
+                <SidebarTrigger />
+                <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
               </div>
-              <div className="text-3xl">✉️</div>
-            </div>
-          </div>
-
-          {/* Role Card */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm font-medium">Account Type</p>
-                <p className="text-lg font-semibold text-gray-900 mt-1 capitalize">
-                  {user.role}
-                </p>
-              </div>
-              <div className="text-3xl">
-                {user.role === "admin" ? "👑" : "👤"}
+              <div className="text-sm text-gray-600">
+                Welcome back, <span className="font-semibold">{user.username}</span>
               </div>
             </div>
           </div>
 
-          {/* User ID Card */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm font-medium">User ID</p>
-                <p className="text-lg font-semibold text-gray-900 mt-1">
-                  #{user.userId}
-                </p>
-              </div>
-              <div className="text-3xl">🆔</div>
+          {/* Main Content */}
+          <div className="p-6 space-y-8">
+            {/* Hero Section */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg p-8 text-white">
+              <h2 className="text-3xl font-bold mb-2">Welcome back, {user.username}!</h2>
+              <p className="text-blue-100 mb-6">
+                Manage your invoices, clients, and track your business performance all in one place.
+              </p>
+              <Link href="/invoices/new">
+                <Button className="bg-white text-blue-600 hover:bg-gray-100 gap-2">
+                  <Plus className="w-4 h-4" />
+                  Create New Invoice
+                </Button>
+              </Link>
             </div>
-          </div>
-        </div>
 
-        {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link href="/invoices/new">
-              <button className="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
-                <span>➕</span>
-                Create Invoice
-              </button>
-            </Link>
-            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
-              <span>👁️</span>
-              View Invoices
-            </button>
-            <button className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
-              <span>👥</span>
-              Manage Clients
-            </button>
-            <button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
-              <span>⚙️</span>
-              Settings
-            </button>
-          </div>
-        </div>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Total Invoices */}
+              <Card className="hover:shadow-md transition-shadow">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium flex items-center justify-between text-gray-600">
+                    Total Invoices
+                    <FileText className="w-4 h-4 text-gray-400" />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-gray-900">12</div>
+                  <p className="text-xs text-gray-500 mt-1">+2 this month</p>
+                </CardContent>
+              </Card>
 
-        {/* Dashboard Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
-          <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
-            <p className="text-blue-600 text-sm font-medium">Total Invoices</p>
-            <p className="text-3xl font-bold text-blue-900 mt-2">0</p>
+              {/* Pending */}
+              <Card className="hover:shadow-md transition-shadow">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium flex items-center justify-between text-gray-600">
+                    Pending
+                    <AlertCircle className="w-4 h-4 text-amber-500" />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-amber-600">3</div>
+                  <p className="text-xs text-gray-500 mt-1">Awaiting payment</p>
+                </CardContent>
+              </Card>
+
+              {/* Paid */}
+              <Card className="hover:shadow-md transition-shadow">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium flex items-center justify-between text-gray-600">
+                    Paid
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-green-600">9</div>
+                  <p className="text-xs text-gray-500 mt-1">Completed</p>
+                </CardContent>
+              </Card>
+
+              {/* Total Clients */}
+              <Card className="hover:shadow-md transition-shadow">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium flex items-center justify-between text-gray-600">
+                    Total Clients
+                    <Users className="w-4 h-4 text-purple-400" />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-gray-900">8</div>
+                  <p className="text-xs text-gray-500 mt-1">Active clients</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Recent Activity & Quick Actions */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Quick Actions */}
+              <Card className="lg:col-span-1">
+                <CardHeader>
+                  <CardTitle className="text-lg">Quick Actions</CardTitle>
+                  <CardDescription>Get things done faster</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Link href="/invoices/new">
+                    <Button className="w-full justify-start gap-2" variant="outline">
+                      <Plus className="w-4 h-4" />
+                      Create Invoice
+                    </Button>
+                  </Link>
+                  <Link href="/invoices">
+                    <Button className="w-full justify-start gap-2" variant="outline">
+                      <FileText className="w-4 h-4" />
+                      View All Invoices
+                    </Button>
+                  </Link>
+                  <Link href="/clients">
+                    <Button className="w-full justify-start gap-2" variant="outline">
+                      <Users className="w-4 h-4" />
+                      Manage Clients
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+
+              {/* Revenue Chart Placeholder */}
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5" />
+                    Revenue Overview
+                  </CardTitle>
+                  <CardDescription>Last 30 days performance</CardDescription>
+                </CardHeader>
+                <CardContent className="h-48 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg flex items-center justify-center">
+                  <div className="text-center text-gray-500">
+                    <TrendingUp className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                    <p>Revenue chart coming soon</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Account Info Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Account Information</CardTitle>
+                <CardDescription>Your profile details</CardDescription>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <p className="text-sm text-gray-500 font-medium mb-1">Email Address</p>
+                  <p className="text-gray-900 font-medium">{user.email}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 font-medium mb-1">Username</p>
+                  <p className="text-gray-900 font-medium">{user.username}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 font-medium mb-1">Account Type</p>
+                  <p className="text-gray-900 font-medium capitalize">{user.role}</p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          <div className="bg-green-50 rounded-lg p-6 border border-green-200">
-            <p className="text-green-600 text-sm font-medium">Total Revenue</p>
-            <p className="text-3xl font-bold text-green-900 mt-2">$0.00</p>
-          </div>
-          <div className="bg-orange-50 rounded-lg p-6 border border-orange-200">
-            <p className="text-orange-600 text-sm font-medium">Pending</p>
-            <p className="text-3xl font-bold text-orange-900 mt-2">0</p>
-          </div>
-          <div className="bg-purple-50 rounded-lg p-6 border border-purple-200">
-            <p className="text-purple-600 text-sm font-medium">Total Clients</p>
-            <p className="text-3xl font-bold text-purple-900 mt-2">0</p>
-          </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </SidebarProvider>
   );
 }
