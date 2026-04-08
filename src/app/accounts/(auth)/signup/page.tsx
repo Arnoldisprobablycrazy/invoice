@@ -1,8 +1,15 @@
-import LoginForm from "@/components/LoginForm";
+import SignupForm from "@/components/SignupForm";
 import Link from "next/link";
 import Image from "next/image";
 
-export default function LoginPage() {
+/**
+ * SIGNUP PAGE
+ * 
+ * Registration page for new users
+ * Displays signup form with validation
+ * Links to login if user already has account
+ */
+export default function SignupPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gray-50">
       <section className="w-full max-w-md bg-white shadow-lg rounded-2xl p-6 sm:p-8">
@@ -12,7 +19,7 @@ export default function LoginPage() {
             <div className="relative w-10 h-10 md:w-12 md:h-12">
               <Image
                 src="/logo.svg"
-                alt="Zukih Logo"
+                alt="Invoicer Logo"
                 fill
                 className="object-contain"
                 priority
@@ -27,34 +34,25 @@ export default function LoginPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            Welcome Back
+            Create Account
           </h2>
           <p className="text-gray-600 mt-1 text-sm sm:text-base">
-            Sign in to continue to your account
+            Join us and start managing your invoices
           </p>
         </div>
 
         {/* Form */}
-        <LoginForm />
+        <SignupForm />
 
         {/* Extra Links */}
         <div className="mt-6 space-y-3 text-center text-sm sm:text-base">
           <p>
-            Don’t have an account?
+            Already have an account?
             <Link
               className="font-semibold text-amber-600 hover:underline ml-1"
-              href="/accounts/(auth)/signup"
+              href="/accounts/(auth)/login"
             >
-              Sign Up
-            </Link>
-          </p>
-          <p>
-            Forgot your password?
-            <Link
-              className="font-semibold text-amber-600 hover:underline ml-1"
-              href="/forgot-password"
-            >
-              Reset Password
+              Sign In
             </Link>
           </p>
         </div>

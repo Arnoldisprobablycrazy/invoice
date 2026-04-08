@@ -2,23 +2,16 @@
 import React, { useState } from "react";
 import AuthButton from "./AuthButton";
 import { useRouter } from "next/navigation";
-import { signIn } from "@/actions/auth";
+import { signUp } from "@/actions/auth";
 import Link from "next/link";
-import type { LoginFormState, LoginResponse } from "@/lib/auth-interfaces";
+import type { SignupFormState, SignupResponse } from "@/lib/auth-interfaces";
 
-/**
- * LOGIN FORM COMPONENT
- * 
- * Handles user authentication with email/password
- * - Validates input
- * - Submits to signIn server action
- * - Redirects on success
- * - Displays error messages on failure
- */
-const LoginForm = () => {
-  const [formState, setFormState] = useState<LoginFormState>({
+const SignupForm = () => {
+  const [formState, setFormState] = useState<SignupFormState>({
     email: "",
+    username: "",
     password: "",
+    confirmPassword: "",
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -41,12 +34,24 @@ const LoginForm = () => {
    * Returns error message if validation fails
    */
   const validateForm = (): string | null => {
-    if (!formState.email || !formState.password) {
-      return "Email and password are required";
+    if (!formState.email || !formState.username || !formState.password || !formState.confirmPassword) {
+      return "All fields are required";
     }
 
-    if (!formState.email.includes("@")) {
+    if (formState.email.length < 5 || !formState.email.includes("@")) {
       return "Please enter a valid email address";
+    }
+
+    if (formState.username.length < 3) {
+      return "Username must be at least 3 characters";
+    }
+
+    if (formState.password.length < 8) {
+      return "Password must be at least 8 characters";
+    }
+
+    if (formState.password !== formState.confirmPassword) {
+      return "Passwords do not match";
     }
 
     return null;
@@ -54,10 +59,10 @@ const LoginForm = () => {
 
   /**
    * Handle form submission
-   * 1. Validate inputs
-   * 2. Call signIn server action
-   * 3. Handle success/error
-   * 4. Redirect to dashboard on success
+   * 1. Validate form inputs
+   * 2. Call signUp server action
+   * 3. Handle success/error responses
+   * 4. Redirect on success
    */
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -76,14 +81,20 @@ const LoginForm = () => {
       // Create FormData for server action
       const formData = new FormData();
       formData.append("email", formState.email);
+      formData.append("username", formState.username);
       formData.append("password", formState.password);
 
-      // Call sign in server action
-      const result = await signIn(formData);
+      // Call sign up server action
+      const result = await signUp(formData);
 
       if (result.status === "success") {
         // Clear form on success
-        setFormState({ email: "", password: "" });
+        setFormState({
+          email: "",
+          username: "",
+          password: "",
+          confirmPassword: "",
+        });
         // Redirect to dashboard
         router.push("/");
       } else {
@@ -92,7 +103,7 @@ const LoginForm = () => {
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
-      console.error("Login error:", err);
+      console.error("Signup error:", err);
     } finally {
       setLoading(false);
     }
@@ -101,8 +112,8 @@ const LoginForm = () => {
   return (
     <div className="flex flex-col gap-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-100">Welcome back</h2>
-        <p className="text-sm text-gray-400 mt-2">Sign in to your account to continue</p>
+        <h2 className="text-2xl font-bold text-gray-100">Create Account</h2>
+        <p className="text-sm text-gray-400 mt-2">Join us today and get started</p>
       </div>
 
       <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
@@ -124,21 +135,53 @@ const LoginForm = () => {
           />
         </div>
 
+        {/* Username Field */}
+        <div>
+          <label htmlFor="username" className="block text-sm font-medium text-gray-200">
+            Username
+          </label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            value={formState.username}
+            onChange={handleChange}
+            placeholder="johndoe"
+            disabled={loading}
+            className="mt-1 w-full px-4 py-2 h-10 rounded-md border border-gray-300 bg-white text-sm text-gray-700 placeholder-gray-500 disabled:bg-gray-100 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+
         {/* Password Field */}
         <div>
-          <div className="flex justify-between items-center">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-200">
-              Password
-            </label>
-            <Link href="/accounts/auth/forgot-password" className="text-sm text-blue-600 hover:text-blue-700">
-              Forgot?
-            </Link>
-          </div>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-200">
+            Password
+          </label>
           <input
             type="password"
             id="password"
             name="password"
             value={formState.password}
+            onChange={handleChange}
+            placeholder="••••••••"
+            disabled={loading}
+            className="mt-1 w-full px-4 py-2 h-10 rounded-md border border-gray-300 bg-white text-sm text-gray-700 placeholder-gray-500 disabled:bg-gray-100 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+          <p className="text-xs text-gray-400 mt-1">Min. 8 characters</p>
+        </div>
+
+        {/* Confirm Password Field */}
+        <div>
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-200">
+            Confirm Password
+          </label>
+          <input
+            type="password"
+            id="confirmPassword"
+            name="confirmPassword"
+            value={formState.confirmPassword}
             onChange={handleChange}
             placeholder="••••••••"
             disabled={loading}
@@ -156,15 +199,15 @@ const LoginForm = () => {
 
         {/* Submit Button */}
         <div className="mt-2">
-          <AuthButton type="login" loading={loading} />
+          <AuthButton type="Sign up" loading={loading} />
         </div>
 
-        {/* Signup Link */}
+        {/* Login Link */}
         <div className="text-center text-sm">
           <p className="text-gray-400">
-            Don&apos;t have an account?{" "}
-            <Link href="/accounts/auth/signup" className="text-blue-600 hover:text-blue-700 font-medium">
-              Sign up
+            Already have an account?{" "}
+            <Link href="/accounts/auth/login" className="text-blue-600 hover:text-blue-700 font-medium">
+              Sign in
             </Link>
           </p>
         </div>
@@ -173,4 +216,4 @@ const LoginForm = () => {
   );
 };
 
-export default LoginForm;
+export default SignupForm;
