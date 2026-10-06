@@ -74,7 +74,7 @@ export function isDbConnected() {
  */
 export async function query<T>(
   sql: string,
-  params: (string | number | boolean)[] = []
+  params: (string | number | boolean | null)[] = []
 ): Promise<T[]> {
   try {
     if (!pool || !isConnected) {
@@ -104,7 +104,7 @@ export async function query<T>(
  */
 export async function queryOne<T>(
   sql: string,
-  params: (string | number | boolean)[] = []
+  params: (string | number | boolean | null)[] = []
 ): Promise<T | null> {
   const results = await query<T>(sql, params);
   return results.length > 0 ? results[0] : null;
@@ -119,7 +119,7 @@ export async function queryOne<T>(
  */
 export async function execute(
   sql: string,
-  params: (string | number | boolean)[] = []
+  params: (string | number | boolean | null)[] = []
 ): Promise<{ lastId: number; affectedRows: number }> {
   try {
     if (!pool) {

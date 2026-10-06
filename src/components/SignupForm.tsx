@@ -4,7 +4,7 @@ import AuthButton from "./AuthButton";
 import { useRouter } from "next/navigation";
 import { signUp } from "@/actions/auth";
 import Link from "next/link";
-import type { SignupFormState, SignupResponse } from "@/lib/auth-interfaces";
+import type { SignupFormState } from "@/lib/auth-interfaces";
 
 const SignupForm = () => {
   const [formState, setFormState] = useState<SignupFormState>({
@@ -95,8 +95,8 @@ const SignupForm = () => {
           password: "",
           confirmPassword: "",
         });
-        // Redirect to dashboard
-        router.push("/");
+        // Redirect to the authenticated dashboard
+        window.location.assign("/dashboard");
       } else {
         // Show error message from server
         setError(result.message);

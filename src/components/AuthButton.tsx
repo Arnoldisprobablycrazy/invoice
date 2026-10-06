@@ -1,21 +1,35 @@
+"use client";
+
 import React from "react";
 
-const AuthButton = ({
-  type,
-  loading,
-}: {
-  type: "login" | "Sign up" | "Reset Password" | "Forgot Password";
+interface AuthButtonProps {
+  type: "login" | "Sign up" | "Reset Password" | "Forgot Password" | string;
   loading: boolean;
-}) => {
+  disabled?: boolean;
+}
+
+const AuthButton = ({ type, loading, disabled }: AuthButtonProps) => {
+  const label =
+    type === "login"
+      ? "Sign In"
+      : type === "Sign up"
+      ? "Sign Up"
+      : type;
+
+  const isDisabled = disabled || loading;
+
   return (
     <button
-      disabled={loading}
       type="submit"
-      className={`${
-        loading ? "bg-gray-600" : "bg-blue-600"
-      } rounded-md w-full px-12 py-3 text-sm font-medium text-white`}
+      disabled={isDisabled}
+      aria-busy={loading}
+      className={`rounded-md w-full px-12 py-3 text-sm font-medium text-white transition-colors ${
+        isDisabled
+          ? "bg-gray-600 cursor-not-allowed"
+          : "bg-blue-600 hover:bg-blue-700"
+      }`}
     >
-      {loading ? "Loading..." : type}
+      {loading ? "Loading..." : label}
     </button>
   );
 };

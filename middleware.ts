@@ -18,6 +18,8 @@ import { verifyToken, extractTokenFromHeader } from "@/lib/jwt";
 
 // Routes that DON'T require authentication
 const PUBLIC_ROUTES = [
+  "/accounts/login",
+  "/accounts/signup",
   "/accounts/auth/login",
   "/accounts/auth/signup",
   "/error",
