@@ -1,110 +1,95 @@
-"use client";
-import React, { useState } from "react";
-import AuthButton from "./AuthButton";
-import { useRouter } from "next/navigation";
-import { signUp } from "@/actions/auth";
-import Link from "next/link";
-import type { SignupFormState } from "@/lib/auth-interfaces";
+'use client';
+
+import React, { useState, useRef, useEffect } from 'react';
+import AuthButton from './AuthButton';
+import Link from 'next/link';
+import { signUp } from '@/actions/auth';
+
+interface SignupFormState {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
 
 const SignupForm = () => {
   const [formState, setFormState] = useState<SignupFormState>({
-    email: "",
-    username: "",
-    password: "",
-    confirmPassword: "",
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
   });
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
-  /**
-   * Handle input field changes
-   * Updates form state as user types
-   */
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const form = formRef.current;
+    if (!form) return;
+    const block = (e: Event) => e.preventDefault();
+    form.addEventListener('submit', block);
+    return () => form.removeEventListener('submit', block);
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormState((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormState((prev) => ({ ...prev, [name]: value }));
   };
 
-  /**
-   * Validate form inputs before submission
-   * Returns error message if validation fails
-   */
-  const validateForm = (): string | null => {
-    if (!formState.email || !formState.username || !formState.password || !formState.confirmPassword) {
-      return "All fields are required";
+  const validate = (): string | null => {
+    if (!formState.username || !formState.email || !formState.password) {
+      return 'All fields are required';
     }
-
-    if (formState.email.length < 5 || !formState.email.includes("@")) {
-      return "Please enter a valid email address";
-    }
-
     if (formState.username.length < 3) {
-      return "Username must be at least 3 characters";
+      return 'Username must be at least 3 characters';
     }
-
+    if (!formState.email.includes('@')) {
+      return 'Please enter a valid email';
+    }
     if (formState.password.length < 8) {
-      return "Password must be at least 8 characters";
+      return 'Password must be at least 8 characters';
     }
-
     if (formState.password !== formState.confirmPassword) {
-      return "Passwords do not match";
+      return 'Passwords do not match';
     }
-
     return null;
   };
 
-  /**
-   * Handle form submission
-   * 1. Validate form inputs
-   * 2. Call signUp server action
-   * 3. Handle success/error responses
-   * 4. Redirect on success
-   */
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
-    setError(null);
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (loading) return;
 
-    // Client-side validation
-    const validationError = validateForm();
+    setError(null);
+    const validationError = validate();
     if (validationError) {
       setError(validationError);
-      setLoading(false);
       return;
     }
 
+    setLoading(true);
     try {
-      // Create FormData for server action
       const formData = new FormData();
-      formData.append("email", formState.email);
-      formData.append("username", formState.username);
-      formData.append("password", formState.password);
+      formData.append('username', formState.username.trim());
+      formData.append('email', formState.email.trim().toLowerCase());
+      formData.append('password', formState.password);
 
-      // Call sign up server action
       const result = await signUp(formData);
 
-      if (result.status === "success") {
-        // Clear form on success
-        setFormState({
-          email: "",
-          username: "",
-          password: "",
-          confirmPassword: "",
-        });
-        // Redirect to the authenticated dashboard
-        window.location.assign("/dashboard");
+      if (result.status === 'success') {
+        window.location.assign('/dashboard');
       } else {
-        // Show error message from server
-        setError(result.message);
+        setError(result.message || 'Signup failed');
+        setLoading(false);
       }
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
-      console.error("Signup error:", err);
-    } finally {
+      console.error('Signup error:', err);
+      setError('An unexpected error occurred. Please try again.');
       setLoading(false);
     }
   };
@@ -112,12 +97,39 @@ const SignupForm = () => {
   return (
     <div className="flex flex-col gap-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-100">Create Account</h2>
-        <p className="text-sm text-gray-400 mt-2">Join us today and get started</p>
+        <h2 className="text-2xl font-bold text-gray-100">Create your account</h2>
+        <p className="text-sm text-gray-400 mt-2">
+          Start invoicing in under a minute
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
-        {/* Email Field */}
+      <form
+        ref={formRef}
+        onSubmit={handleSubmit}
+        method="post"
+        action="#"
+        noValidate
+        autoComplete="on"
+        className="w-full flex flex-col gap-4"
+      >
+        <div>
+          <label htmlFor="username" className="block text-sm font-medium text-gray-200">
+            Business or Your Name
+          </label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            value={formState.username}
+            onChange={handleChange}
+            placeholder="Kamau Hardware"
+            disabled={loading}
+            autoComplete="organization"
+            className="mt-1 w-full px-4 py-3 h-12 rounded-md border border-gray-300 bg-white text-base text-gray-700 placeholder-gray-500 disabled:bg-gray-100 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-200">
             Email Address
@@ -130,30 +142,16 @@ const SignupForm = () => {
             onChange={handleChange}
             placeholder="you@example.com"
             disabled={loading}
-            className="mt-1 w-full px-4 py-2 h-10 rounded-md border border-gray-300 bg-white text-sm text-gray-700 placeholder-gray-500 disabled:bg-gray-100 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
+            autoComplete="email"
+            inputMode="email"
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
+            className="mt-1 w-full px-4 py-3 h-12 rounded-md border border-gray-300 bg-white text-base text-gray-700 placeholder-gray-500 disabled:bg-gray-100 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
 
-        {/* Username Field */}
-        <div>
-          <label htmlFor="username" className="block text-sm font-medium text-gray-200">
-            Username
-          </label>
-          <input
-            type="text"
-            id="username"
-            name="username"
-            value={formState.username}
-            onChange={handleChange}
-            placeholder="johndoe"
-            disabled={loading}
-            className="mt-1 w-full px-4 py-2 h-10 rounded-md border border-gray-300 bg-white text-sm text-gray-700 placeholder-gray-500 disabled:bg-gray-100 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-
-        {/* Password Field */}
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-gray-200">
             Password
@@ -164,15 +162,14 @@ const SignupForm = () => {
             name="password"
             value={formState.password}
             onChange={handleChange}
-            placeholder="••••••••"
+            placeholder="At least 8 characters"
             disabled={loading}
-            className="mt-1 w-full px-4 py-2 h-10 rounded-md border border-gray-300 bg-white text-sm text-gray-700 placeholder-gray-500 disabled:bg-gray-100 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
+            autoComplete="new-password"
+            className="mt-1 w-full px-4 py-3 h-12 rounded-md border border-gray-300 bg-white text-base text-gray-700 placeholder-gray-500 disabled:bg-gray-100 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
-          <p className="text-xs text-gray-400 mt-1">Min. 8 characters</p>
         </div>
 
-        {/* Confirm Password Field */}
         <div>
           <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-200">
             Confirm Password
@@ -183,29 +180,27 @@ const SignupForm = () => {
             name="confirmPassword"
             value={formState.confirmPassword}
             onChange={handleChange}
-            placeholder="••••••••"
+            placeholder="Re-enter password"
             disabled={loading}
-            className="mt-1 w-full px-4 py-2 h-10 rounded-md border border-gray-300 bg-white text-sm text-gray-700 placeholder-gray-500 disabled:bg-gray-100 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
+            autoComplete="new-password"
+            className="mt-1 w-full px-4 py-3 h-12 rounded-md border border-gray-300 bg-white text-base text-gray-700 placeholder-gray-500 disabled:bg-gray-100 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
 
-        {/* Error Message */}
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+          <div role="alert" className="p-3 bg-red-50 border border-red-200 rounded-md">
             <p className="text-red-700 text-sm">{error}</p>
           </div>
         )}
 
-        {/* Submit Button */}
         <div className="mt-2">
-          <AuthButton type="Sign up" loading={loading} />
+          <AuthButton type="Sign up" loading={loading} disabled={!mounted} />
         </div>
 
-        {/* Login Link */}
         <div className="text-center text-sm">
           <p className="text-gray-400">
-            Already have an account?{" "}
+            Already have an account?{' '}
             <Link href="/accounts/auth/login" className="text-blue-600 hover:text-blue-700 font-medium">
               Sign in
             </Link>
