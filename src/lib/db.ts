@@ -2,54 +2,69 @@ import mysql from 'mysql2/promise';
 
 /**
  * MySQL Connection Utility
- * 
- * WHY THIS EXISTS:
- * - mysql2/promise provides connection pooling (reuses connections)
- * - Connection pooling is more efficient than creating new connection per query
- * - Pool handles multiple concurrent requests without overwhelming database
- * - Automatic connection management (creation, cleanup, error handling)
  */
 
 let pool: mysql.Pool | null = null;
 let isConnected = false;
 
 /**
- * Initialize the database connection pool
- * Called once when the app starts
+ * Initialize the database connection pool.
+ * Called once when the app starts.
  */
 export async function initializePool() {
   if (pool && isConnected) return pool;
 
+  const host = process.env.DATABASE_HOST || 'localhost';
+  const port = Number(process.env.DATABASE_PORT) || 3306;
+  const user = process.env.DATABASE_USER || 'root';
+  const password = process.env.DATABASE_PASSWORD || '';
+  const database = process.env.DATABASE_NAME || 'test';
+  const useSsl = process.env.DATABASE_SSL === 'true';
+
+  console.log('🔄 Attempting to connect to MySQL...');
+  console.log('   Host:', host);
+  console.log('   Port:', port);
+  console.log('   User:', user);
+  console.log('   Database:', database);
+  console.log('   SSL:', useSsl);
+  console.log('   Password length:', password.length);
+
   try {
-    console.log('🔄 Attempting to connect to MySQL...');
-    
     pool = mysql.createPool({
-      host: process.env.DATABASE_HOST || 'localhost',
-      user: process.env.DATABASE_USER || 'root',
-      password: process.env.DATABASE_PASSWORD || '',
-      database: process.env.DATABASE_NAME || 'test',
+      host,
+      port,
+      user,
+      password,
+      database,
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0,
+      // MySQL DECIMALs come back as strings by default — force numbers
+      decimalNumbers: true,
+      // Aiven requires SSL
+      ssl: useSsl ? { rejectUnauthorized: false } : undefined,
     });
 
     // Test connection
     const connection = await pool.getConnection();
+    await connection.ping();
     connection.release();
-    
+
     isConnected = true;
     console.log('✅ Database pool initialized successfully');
     return pool;
   } catch (error) {
     pool = null;
     isConnected = false;
-    console.error('❌ Database connection failed:', error instanceof Error ? error.message : String(error));
-    throw new Error(`Database connection failed: ${error instanceof Error ? error.message : String(error)}`);
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('❌ Database connection failed:', msg);
+    console.error('   Full error:', error);
+    throw new Error(`Database connection failed: ${msg}`);
   }
 }
 
 /**
- * Get existing pool or initialize new one
+ * Get existing pool or throw if not initialized.
  */
 export function getPool() {
   if (!pool) {
@@ -59,48 +74,40 @@ export function getPool() {
 }
 
 /**
- * Check if database is connected
+ * Check if database is connected.
  */
 export function isDbConnected() {
   return isConnected;
 }
 
 /**
- * Execute a SELECT query that returns multiple rows
- * 
- * @param query - SQL query with ? placeholders
- * @param params - Parameters to replace ? placeholders
- * @returns Array of rows
+ * Execute a SELECT query that returns multiple rows.
  */
 export async function query<T>(
   sql: string,
   params: (string | number | boolean | null)[] = []
 ): Promise<T[]> {
+  if (!pool || !isConnected) {
+    await initializePool();
+  }
+  if (!pool) {
+    throw new Error('Database pool not initialized');
+  }
+
+  const connection = await pool.getConnection();
   try {
-    if (!pool || !isConnected) {
-      await initializePool();
-    }
-    
-    if (!pool) {
-      throw new Error('Database pool not initialized');
-    }
-    
-    const connection = await pool.getConnection();
     const [rows] = await connection.execute(sql, params);
-    connection.release();
     return rows as T[];
   } catch (error) {
     console.error('Database query error:', error);
     throw error;
+  } finally {
+    connection.release();
   }
 }
 
 /**
- * Execute a query that returns a single row
- * 
- * @param query - SQL query with ? placeholders
- * @param params - Parameters to replace ? placeholders
- * @returns Single row object or null
+ * Execute a query that returns a single row.
  */
 export async function queryOne<T>(
   sql: string,
@@ -111,26 +118,22 @@ export async function queryOne<T>(
 }
 
 /**
- * Execute INSERT, UPDATE, DELETE queries
- * 
- * @param query - SQL query with ? placeholders
- * @param params - Parameters to replace ? placeholders
- * @returns Object with insertId, affectedRows, etc.
+ * Execute INSERT, UPDATE, DELETE queries.
  */
 export async function execute(
   sql: string,
   params: (string | number | boolean | null)[] = []
 ): Promise<{ lastId: number; affectedRows: number }> {
+  if (!pool) {
+    await initializePool();
+  }
+  if (!pool) {
+    throw new Error('Database pool not initialized');
+  }
+
+  const connection = await pool.getConnection();
   try {
-    if (!pool) {
-      throw new Error('Database pool not initialized');
-    }
-    
-    const connection = await pool.getConnection();
     const [result] = await connection.execute(sql, params);
-    connection.release();
-    
-    // Cast to OkPacket to access these properties
     const okPacket = result as mysql.OkPacket;
     return {
       lastId: okPacket.insertId,
@@ -139,11 +142,13 @@ export async function execute(
   } catch (error) {
     console.error('Database execute error:', error);
     throw error;
+  } finally {
+    connection.release();
   }
 }
 
 /**
- * Close all connections in the pool (run on app shutdown)
+ * Close all connections in the pool (run on app shutdown).
  */
 export async function closePool() {
   if (pool) {
@@ -152,26 +157,4 @@ export async function closePool() {
     pool = null;
     isConnected = false;
   }
-  export async function initializePool(): Promise<void> {
-  if (pool) return;
-
-  console.log('🔄 Attempting to connect to MySQL...');
-  console.log('   Host:', process.env.DATABASE_HOST);
-  console.log('   Port:', process.env.DATABASE_PORT);
-  console.log('   User:', process.env.DATABASE_USER);
-  console.log('   Database:', process.env.DATABASE_NAME);
-  console.log('   SSL:', process.env.DATABASE_SSL);
-
-  try {
-    pool = mysql.createPool({ /* ...existing config... */ });
-    const conn = await pool.getConnection();
-    await conn.ping();
-    conn.release();
-    console.log('✅ Database pool initialized successfully');
-  } catch (err) {
-    console.error('❌ Database connection failed:', err);
-    pool = null;
-    throw err;
-  }
-}
 }
