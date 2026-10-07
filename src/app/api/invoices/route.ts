@@ -9,7 +9,7 @@ async function auth() {
   const cookieStore = await cookies();
   const token = cookieStore.get('authToken')?.value;
   if (!token) return null;
-  const payload = verifyToken(token);
+  const payload = await verifyToken(token);
   if (!payload) return null;
   const business = await getActiveBusiness(payload.userId);
   return business ? { userId: payload.userId, business } : null;

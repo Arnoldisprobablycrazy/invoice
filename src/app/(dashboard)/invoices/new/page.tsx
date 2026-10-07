@@ -8,7 +8,7 @@ import InvoiceForm from '@/components/invoices/InvoiceForm';
 
 export default async function NewInvoicePage() {
   const token = (await cookies()).get('authToken')?.value;
-  const payload = token ? verifyToken(token) : null;
+  const payload = await token ? verifyToken(token) : null;
   if (!payload) redirect('/accounts/auth/login');
 
   const business = await getActiveBusiness(payload.userId);

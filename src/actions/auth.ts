@@ -159,7 +159,7 @@ export async function signIn(formData: FormData) {
     }
 
     // Generate JWT token
-    const token = generateToken({
+    const token = await generateToken({
       userId: user.id,
       email: user.email,
       username: user.username,
@@ -245,7 +245,7 @@ export async function getCurrentUser() {
       return null;
     }
 
-    const payload = verifyToken(token);
+    const payload = await verifyToken(token);
     return payload || null;
   } catch (error) {
     console.error("Get current user error:", error);

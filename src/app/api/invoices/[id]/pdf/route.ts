@@ -16,7 +16,7 @@ export async function GET(
   const token = cookieStore.get('authToken')?.value;
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const payload = verifyToken(token);
+  const payload = await verifyToken(token);
   if (!payload) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const business = await getActiveBusiness(payload.userId);

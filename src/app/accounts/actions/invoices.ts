@@ -12,7 +12,7 @@ export async function createInvoiceAction(formData: FormData) {
   const token = cookieStore.get('authToken')?.value;
   if (!token) redirect('/accounts/auth/login');
 
-  const payload = verifyToken(token);
+  const payload = await verifyToken(token);
   if (!payload) redirect('/accounts/auth/login');
 
   const business = await getActiveBusiness(payload.userId);

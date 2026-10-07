@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   if (!token) {
     return NextResponse.json({ error: 'Please log in again.' }, { status: 401 });
   }
-  const payload = verifyToken(token);
+  const payload = await verifyToken(token);
   if (!payload) {
     return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
   }
