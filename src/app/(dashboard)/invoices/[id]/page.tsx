@@ -17,7 +17,8 @@ const badge: Record<string, string> = { draft: 'bg-slate-100 text-slate-700', se
 
 export default async function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const token = (await cookies()).get('authToken')?.value;
-  const payload = awaittoken ? verifyToken(token) : null;
+  if (!token) redirect('/accounts/auth/login');
+  const payload = await verifyToken(token);
   if (!payload) redirect('/accounts/auth/login');
   const business = await getActiveBusiness(payload.userId);
   if (!business) redirect('/onboarding');

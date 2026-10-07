@@ -13,7 +13,8 @@ const editableFields = [
 ] as const;
 
 const nullableFields = new Set([
-  'kra_pin', 'phone', 'email', 'address', 'logo_url', 'mpesa_till', 'mpesa_paybill', 'bank_details',
+  'kra_pin', 'phone', 'email', 'address', 'logo_url',
+  'mpesa_till', 'mpesa_paybill', 'bank_details',
 ]);
 
 type RequestBody = Record<string, unknown>;
@@ -21,10 +22,22 @@ type SqlValue = string | number | boolean | null;
 
 async function getBusinessFromRequest() {
   const token = (await cookies()).get('authToken')?.value;
-  const payload = token ? verifyToken(token) : null;
-  if (!payload) return { error: NextResponse.json({ error: 'Session expired.' }, { status: 401 }) };
+
+  // ✅ Guard: token might be undefined
+  if (!token) {
+    return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
+  }
+
+  const payload = await verifyToken(token);
+  if (!payload) {
+    return { error: NextResponse.json({ error: 'Session expired.' }, { status: 401 }) };
+  }
+
   const business = await getActiveBusiness(payload.userId);
-  if (!business) return { error: NextResponse.json({ error: 'Business not found.' }, { status: 400 }) };
+  if (!business) {
+    return { error: NextResponse.json({ error: 'Business not found.' }, { status: 400 }) };
+  }
+
   return { business };
 }
 
@@ -47,12 +60,16 @@ export async function PATCH(request: NextRequest) {
     const raw = body as RequestBody;
     const parsed = updateBusinessSchema.safeParse(raw);
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.issues[0]?.message || 'Invalid input.' }, { status: 400 });
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message || 'Invalid input.' },
+        { status: 400 }
+      );
     }
 
     const values = parsed.data as unknown as Record<string, SqlValue>;
     const assignments: string[] = [];
     const params: SqlValue[] = [];
+
     for (const field of editableFields) {
       if (!Object.prototype.hasOwnProperty.call(raw, field)) continue;
       assignments.push(`${field} = ?`);
@@ -67,10 +84,17 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const business = await queryOne<Business>('SELECT * FROM businesses WHERE id = ?', [context.business.id]);
+    const business = await queryOne<Business>(
+      'SELECT * FROM businesses WHERE id = ?',
+      [context.business.id]
+    );
+
     return NextResponse.json({ ok: true, business });
   } catch (error) {
     console.error('[business settings]', error);
-    return NextResponse.json({ error: 'Could not save business settings.' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Could not save business settings.' },
+      { status: 500 }
+    );
   }
 }

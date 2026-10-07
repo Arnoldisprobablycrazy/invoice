@@ -61,7 +61,7 @@ export async function signUp(formData: FormData) {
     );
 
     // Create JWT token
-    const token = generateToken({
+    const token = await generateToken({
       userId: result.lastId,
       email: credentials.email,
       username: credentials.username,
