@@ -152,4 +152,26 @@ export async function closePool() {
     pool = null;
     isConnected = false;
   }
+  export async function initializePool(): Promise<void> {
+  if (pool) return;
+
+  console.log('🔄 Attempting to connect to MySQL...');
+  console.log('   Host:', process.env.DATABASE_HOST);
+  console.log('   Port:', process.env.DATABASE_PORT);
+  console.log('   User:', process.env.DATABASE_USER);
+  console.log('   Database:', process.env.DATABASE_NAME);
+  console.log('   SSL:', process.env.DATABASE_SSL);
+
+  try {
+    pool = mysql.createPool({ /* ...existing config... */ });
+    const conn = await pool.getConnection();
+    await conn.ping();
+    conn.release();
+    console.log('✅ Database pool initialized successfully');
+  } catch (err) {
+    console.error('❌ Database connection failed:', err);
+    pool = null;
+    throw err;
+  }
+}
 }
