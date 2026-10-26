@@ -29,6 +29,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <AppInitializer />
         <ToastProvider>{children}</ToastProvider>
+        <Analytics />
       </body>
     </html>
   );
